@@ -1,0 +1,2 @@
+cd reasoning_models
+accelerate launch --config_file src/zero2.yaml src/train_sft_cot.py --config sft_config.yaml
