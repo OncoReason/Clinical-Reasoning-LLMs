@@ -36,7 +36,7 @@ class BaseSFTTrainer(ABC):
         self.peft_config = None
         self.bnb_config = None
         self.quantization = "4bit" # Use 4bit quantization if needed
-        self.hf_token = "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"  # Hugging Face token (replace with your own)
+        self.hf_token = ""  # Hugging Face token (replace with your own)
         self.cache_directory = "/scratch/rh3884/huggingface_models"
         self.use_peft = True
         self.use_bnb = False
