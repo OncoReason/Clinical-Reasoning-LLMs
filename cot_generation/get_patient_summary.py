@@ -1,3 +1,20 @@
+"""
+Script to generate summarized patient clinical information from raw cBioPortal data.
+
+This script processes patient JSON files, extracts and summarizes key clinical,
+biomarker, treatment, and sample-specific information, and writes a summary per patient.
+
+Usage:
+    python get_patient_summary.py
+
+Input:
+    - Folder 'patient_data' containing one JSON file per patient.
+    - 'attributes_metadata.json' describing attribute priorities and sources.
+
+Output:
+    - 'patient_summary.json' with summarized patient information.
+"""
+
 import json
 import os
 import statistics
@@ -8,6 +25,7 @@ from scipy.stats import linregress
 with open("attributes_metadata.json") as f:
     attr_meta = json.load(f)
 
+# Build attribute priority and source dictionaries
 attr_priority = {}
 attr_source = {}
 for attr in attr_meta:
@@ -27,6 +45,7 @@ cancer_specific_keywords = {
     "Prostate Cancer": {"Gleason", "PSA"},
 }
 
+# Map cancer types to relevant attributes for summary
 cancer_type_attr_map = defaultdict(lambda: {"Patient": set(), "Sample": set()})
 for attr, prio in attr_priority.items():
     for cancer, keywords in cancer_specific_keywords.items():
@@ -36,6 +55,7 @@ for attr, prio in attr_priority.items():
         }:
             cancer_type_attr_map[cancer][attr_source[attr]].add(attr)
 
+# Sample-level attributes to include by cancer type
 sample_attrs_by_cancer = defaultdict(set)
 sample_attrs_by_cancer.update({
     "Breast Cancer": {"Cancer Type Detailed", "Sample Type", "Metastatic Site", "Clinical Summary"},
@@ -47,7 +67,20 @@ sample_attrs_by_cancer.update({
 
 # === Summarize lab tests ===
 def summarize_lab_tests(lab_tests, cancer_types):
+    """
+    Summarize key tumor marker lab tests for a patient.
+
+    Args:
+        lab_tests (list): List of lab test records.
+        cancer_types (set): Set of cancer types for the patient.
+
+    Returns:
+        str: Summary string of tumor marker trends and values.
+    """
     def compute_stats(values):
+        """
+        Compute statistics for a list of (day, value) tuples.
+        """
         if len(values) < 2:
             return {"avg": round(values[0][1], 1), "note": "single value"}
         values.sort()
@@ -70,6 +103,9 @@ def summarize_lab_tests(lab_tests, cancer_types):
         }
 
     def extract_values(aliases):
+        """
+        Extract (day, value) tuples for given marker aliases.
+        """
         return [
             (int(entry.get("DAYS_FROM_DIAGNOSIS", entry.get("START_DATE", 0))), float(entry["RESULT"]))
             for entry in lab_tests
@@ -105,6 +141,17 @@ def summarize_lab_tests(lab_tests, cancer_types):
 
 # === Treatment summarization ===
 def extract_treatment_summary(events, type_key, label):
+    """
+    Summarize treatments of a given type for a patient.
+
+    Args:
+        events (list): List of treatment event dicts.
+        type_key (str): Subtype to filter (e.g., 'chemo').
+        label (str): Label for the summary (e.g., 'Chemotherapy').
+
+    Returns:
+        str: Summary string for the treatment type.
+    """
     lines, dates = [], []
     for t in events:
         if t.get("SUBTYPE", "").lower() == type_key:
@@ -121,6 +168,15 @@ def extract_treatment_summary(events, type_key, label):
 
 # === Main patient summary generator ===
 def extract_patient_info(record):
+    """
+    Extract and summarize clinical, biomarker, treatment, and sample-specific info for a patient.
+
+    Args:
+        record (dict): Raw patient record.
+
+    Returns:
+        dict: Summarized patient information.
+    """
     clinical = record.get("CLINICAL_DATA", [])
     patient_id = record.get("patient_id", [])
     survival_status = next((i["Value"] for i in clinical if i["Attribute"] == "Overall Survival Status"), "N/A")
@@ -146,6 +202,7 @@ def extract_patient_info(record):
             "Race", "Ethnicity"
         }:
             continue
+        # Biomarker and attribute logic
         if label in {"HER2", "PD-L1", "HR", "ER", "PR"}:
             if label == "PD-L1" or ("Breast Cancer" in cancer_types and label != "PD-L1"):
                 biomarkers.append(f"{label}={value}")
@@ -172,6 +229,7 @@ def extract_patient_info(record):
     if tumor_sites:
         blocks.append("Tumor Sites: " + ", ".join(sorted(tumor_sites)))
 
+    # Treatment summaries
     treatments = record.get("Treatment", [])
     extra_therapy = record.get("TREATMENT", [])
     all_radiation = [t for t in (treatments + extra_therapy) if "Radiation" in t.get("SUBTYPE", "")]
@@ -196,12 +254,15 @@ def extract_patient_info(record):
         treatment_lines.append(radiation_summary)
     blocks.append("Treatments:\n" + "\n".join([line for line in treatment_lines if line]))
 
+    # Lab test summary
     if (lab := summarize_lab_tests(record.get("LAB_TEST", []), cancer_types)):
         blocks.append(lab)
 
+    # Multiple diagnoses
     if len(cancer_types) > 1:
         blocks.append("Diagnoses: " + ", ".join(sorted(cancer_types)))
 
+    # Sample-specific information
     if sample_data:
         cancer_type_to_samples = defaultdict(list)
         for sid, attrs in sample_data.items():
@@ -236,6 +297,7 @@ if __name__ == "__main__":
     output_file = "patient_summary.json"
     all_results = []
 
+    # Process each patient JSON file in the input folder
     for filename in os.listdir(input_folder):
         if filename.endswith(".json"):
             file_path = os.path.join(input_folder, filename)
@@ -247,6 +309,7 @@ if __name__ == "__main__":
             except Exception as e:
                 print(f"Error processing {filename}: {e}")
 
+    # Sort results by patient_id and write to output file
     all_results.sort(key=lambda x: x.get("patient_id", ""))
     with open(output_file, "w") as f:
         json.dump(all_results, f, indent=2)
