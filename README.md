@@ -89,9 +89,29 @@ See `requirements.txt` for all dependencies.
 
 ---
 
+## 📚 Citation
+
+If you use this dataset or code in your research, please cite the following paper:
+
+> **OncoReason: Structuring Clinical Reasoning in LLMs for Robust and Interpretable Survival Prediction**  
+> Raghu Vamshi Hemadri, Geetha Krishna Guruju, Kristi Topollai, Anna Ewa Choromanska  
+> *arXiv preprint arXiv:2510.17532*  
+> [https://arxiv.org/abs/2510.17532](https://arxiv.org/abs/2510.17532)
+
+```bibtex
+@misc{hemadri2025oncoreasonstructuringclinicalreasoning,
+      title={OncoReason: Structuring Clinical Reasoning in LLMs for Robust and Interpretable Survival Prediction}, 
+      author={Raghu Vamshi Hemadri and Geetha Krishna Guruju and Kristi Topollai and Anna Ewa Choromanska},
+      year={2025},
+      eprint={2510.17532},
+      archivePrefix={arXiv},
+      primaryClass={cs.CL},
+      url={https://arxiv.org/abs/2510.17532}, 
+}
+```
+---
 ## License
 
-*Specify your license here (e.g., MIT, Apache 2.0, etc.)*
 
 ---
 
