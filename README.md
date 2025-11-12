@@ -88,7 +88,7 @@ src/
 See `requirements.txt` for all dependencies.
 
 ---
- ## Reasining Traces Dataset Link
+ ## Reasoning Traces Dataset Link
 
 Available on Hugging face
 
