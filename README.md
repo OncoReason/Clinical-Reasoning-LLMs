@@ -120,6 +120,12 @@ If you use this dataset or code in your research, please cite the following pape
 ---
 ## License
 
+This repository is released under the **MIT License**.  
+See the accompanying [LICENSE](./LICENSE) file for the full text.
+
+You are welcome to use, modify, and extend this code for academic or research purposes, with appropriate citation to the authors and our paper:
+
+> Geetha Krishna Guruju, Raghu Vamsi Hemadri., *et al.*, “OncoReason: Structuring Clinical Reasoning in LLMs for Robust and Interpretable Survival Prediction,” 2025.
 
 ---
 
