@@ -88,6 +88,14 @@ src/
 See `requirements.txt` for all dependencies.
 
 ---
+ ## Reasining Traces Dataset Link
+
+Available on Hugging face
+
+>cancer reasoning traces
+>[https://huggingface.co/datasets/oncollm/cancer-reasoning-traces]
+
+---
 
 ## 📚 Citation
 
